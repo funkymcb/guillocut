@@ -49,8 +49,8 @@ This implies that a perfect solution would be a waste of 0 and less or equal tha
 At this point we have 100% overall fitness and can succesfully end the loop.  
 
 Total fitness function could look like this:  
-`((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 1; for w = 0, Sn = 1 and n <= 3`
-`((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 0; for w = As - Ai and n >= 20`
+`((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 1; for w = 0, Sn = 1 and n <= 3`  
+`((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 0; for w = As - Ai and n >= 20`  
 with:
 - As: total surface area of stock plates
 - Ai: total surface area of items
