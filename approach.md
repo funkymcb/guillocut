@@ -50,6 +50,7 @@ At this point we have 100% overall fitness and can succesfully end the loop.
 
 Total fitness function could look like this:  
 `f1 = ((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 1; for w = 0, Sn = 1 and n <= 3`  
+
 `f0 = ((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 0; for w = As - Ai, Sn > 1 and n >= 20`  
 with:
 - As: total surface area of stock plates
