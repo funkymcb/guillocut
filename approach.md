@@ -40,7 +40,7 @@ We assume that 3 stages and below are a perfect outcome.
 So 3 stages are 100% fitness and everything above 20 stages is 0% fitness.
 
 ## Combine waste and stage
-To combine the 2 criteria we need to give those a percentage. For example:
+To combine the 2 criteria we need to give those a weight in percent. For example:
 - c1 = 45% = 0.45
 - c2 = 45% = 0.45
 - c3 = 10% = 0.1
@@ -51,6 +51,16 @@ At this point we have 100% overall fitness and can succesfully end the loop.
 Total fitness function could look like this:  
 *((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 1; for w = 0, Sn = 1 and n <= 3*  
 *((As - (Ai + w)) * c1) + ((St / Sn) * (100 / St) * c2) + (n * c3) = 0; for w = As - Ai and n >= 20*  
+with:
+- As: total surface area of stock plates
+- Ai: total surface area of items
+- w: surface area of waste
+- St: total number of stock plates
+- Sn: number of used stock plates
+- n: number of stages
+- c1: wighting of minimal waste in percent
+- c2: wighting of minimal number of stock plates in percent
+- c3: wighting of minimal number of stages in percent
 
 # (Natural) Selection
 do not just use the 2 best. make it based on probalities.
