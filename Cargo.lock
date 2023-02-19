@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "guillocut-api"
+name = "guillocut"
 version = "0.1.0"
