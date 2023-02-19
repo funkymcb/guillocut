@@ -35,7 +35,12 @@ To combine the 3 criteria we use the following percentage:
 - c2 = 30%
 
 This implies that a perfect solution would be a waste of 0 and less or equal than 3 stages.  
-At this point we have 100% overall fitness and can succesfully end the loop.
+At this point we have 100% overall fitness and can succesfully end the loop.  
+
+Total fitness function could look like this:  
+*((As - Ai ^= As - (Ai + w) * 0.7) + (n * 0.3)) = 1; for w = 0 and n <= 3*  
+*((As - Ai ^= As - (Ai + w) * 0.7) + (n * 0.3)) = 0; for w = As - Ai and n >= 20*  
+with n as the number of stages
 
 # TODO
 - think about number of stock plates again
