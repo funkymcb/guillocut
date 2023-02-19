@@ -5,15 +5,17 @@ The total surface area of the items cannot be bigger thant the stock plates etc.
 
 # Fitness Function
 The three criterias are:
-    - c1: minimize waste
-    - c2: minimize stages
+- c1: minimize waste
+- c2: minimize stages
 
 ## Minimizing waste
 For minimizing the waste the general idea of the fitness function would be:  
 - As: Total area of all stock plates
 - Ai: Total area of all items
-- w: waste
+- w: waste  
+
 *As - Ai ^= As - (Ai + w)*  
+
 - If *w = 0* the fitness is 100%
 - If *w = As - Ai* the fitness is 0%
 
