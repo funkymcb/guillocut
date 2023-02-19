@@ -22,25 +22,24 @@ For minimizing the waste the general idea of the fitness function would be:
 If the waste is 0 we do already use the least amount of stock plates.  
 So i think that the number of used stock plates does not have to be considered in the fitness function.
 
-## Minimizing stages
-For the number of stages we assume a maximum of 20 stages.  
+## Minimizing stages (n)
+For the number of stages (n) we assume a maximum of 20 stages.  
 1 stage can only appear is we have a maximum of 2 items this case can be ignored.  
 Even 2 stages are highly unlikely in everyday situations.  
 We assume that 3 stages and below are a perfect outcome.  
 So 3 stages are 100% fitness and everything above 20 stages is 0% fitness.
 
 ## Combine waste and stage
-To combine the 3 criteria we use the following percentage:
-- c1 = 70%
-- c2 = 30%
+To combine the 2 criteria we need to give those a percentage. For example:
+- c1 = 70% = 0.7
+- c2 = 30% = 0.3
 
 This implies that a perfect solution would be a waste of 0 and less or equal than 3 stages.  
 At this point we have 100% overall fitness and can succesfully end the loop.  
 
 Total fitness function could look like this:  
-*(As - (Ai + w) * 0.7) + (n * 0.3) = 1; for w = 0 and n <= 3*  
-*(As - (Ai + w) * 0.7) + (n * 0.3) = 0; for w = As - Ai and n >= 20*  
-with n as the number of stages
+*(As - (Ai + w) * c1) + (n * c2) = 1; for w = 0 and n <= 3*  
+*(As - (Ai + w) * c1) + (n * c2) = 0; for w = As - Ai and n >= 20*  
 
 # TODO
 - think about number of stock plates again
