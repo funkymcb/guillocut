@@ -7,6 +7,10 @@ Ideas:
 - if there is just one cut trhough the length of the stock plate possible, we have a guillocut
 
 # Fitness Function
+## Ideas
+- higher fitness if guillotine cut is centered, lesser fitness the further the cut is away from the center
+
+## approach
 The three criterias are:
 - minimize waste (c1)
 - minimize number of stock plates (c2)
