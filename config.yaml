@@ -1,0 +1,5 @@
+databse:
+  host: localhost
+  port: 27017
+  root_user: root
+  root_pswd: toor
