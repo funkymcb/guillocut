@@ -1,14 +1,18 @@
 package config
 
 import (
-	"fmt"
-	"log/slog"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
+const configPath = "config.yaml"
+
+type conf struct {
+	Server struct {
+		Host string `yaml:"host"`
+		Port int    `yaml:"port"`
+	} `yaml:"server"`
 	Database struct {
 		Host     string `yaml:"host,omitempty"`
 		Port     int    `yaml:"port,omitempty"`
@@ -17,17 +21,16 @@ type Config struct {
 	} `yaml:"database,omitempty"`
 }
 
-var Cfg Config
-
-func Read(slog *slog.Logger) error {
-	configFile, err := os.ReadFile("config.yaml")
+func Get() (*conf, error) {
+	configFile, err := os.ReadFile(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = yaml.Unmarshal(configFile, Cfg); err != nil {
-		return err
+	var cfg conf
+	if err = yaml.Unmarshal(configFile, &cfg); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return &cfg, nil
 }
