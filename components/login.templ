@@ -2,15 +2,15 @@ package components
 
 templ Login() {
 	@layout("Login") {
-		<h2>Login</h2>
-		<label for="username">Username:</label>
-		<input type="text" id="username" name="username" required/>
-		<br/>
-		<br/>
-		<label for="password">Password:</label>
-		<input type="password" id="password" name="password" required/>
-		<br/>
-		<br/>
-		<input type="submit" value="Login"/>
+		<form id="login" action="/login" method="POST">
+			<div>
+				<h2>Login</h2>
+				<input type="text" placeholder="Enter Username" id="username" name="username" required/>
+				<br/>
+				<input type="password" placeholder="Enter Password" id="password" name="password" required/>
+				<br/>
+				<input type="submit" value="Login"/>
+			</div>
+		</form>
 	}
 }

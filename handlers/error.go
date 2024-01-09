@@ -13,7 +13,10 @@ func errorHandler(l *slog.Logger, t time.Time, w *responseWriter, r *http.Reques
 	w.WriteHeader(status)
 	log(l, "error", t, r, w)
 
-	if status == http.StatusNotFound {
-		templ.Handler(components.NotFound()).ServeHTTP(w, r)
+	switch status {
+	case http.StatusNotFound:
+		templ.Handler(components.Error(status, "Not Found")).ServeHTTP(w, r)
+	case http.StatusMethodNotAllowed:
+		templ.Handler(components.Error(status, "Method Not Allowed")).ServeHTTP(w, r)
 	}
 }

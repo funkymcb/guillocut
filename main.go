@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/funkymcb/guillocut/config"
-	"github.com/funkymcb/guillocut/db"
 	"github.com/funkymcb/guillocut/handlers"
 )
 
@@ -20,11 +19,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	/* TODO we only need to connect to db on login
 	db.Logger = logger
+	c := context.Background()
 	if err := db.Connect(); err != nil {
 		slog.Error("could not connect to mongo database", "message", err)
 		os.Exit(1)
-	}
+	} */
 
 	handlers.Logger = logger
 	http.Handle("/", handlers.NewHomeHandler())

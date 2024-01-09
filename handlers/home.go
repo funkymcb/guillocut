@@ -30,6 +30,11 @@ func (hh HomeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method != http.MethodGet {
+		errorHandler(hh.Log, ts, rw, r, http.StatusMethodNotAllowed)
+		return
+	}
+
 	templ.Handler(components.Home()).ServeHTTP(rw, r)
 
 	log(hh.Log, "info", ts, r, rw)

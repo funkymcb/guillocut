@@ -1,6 +1,8 @@
 package db
 
-import "log/slog"
+import (
+	"log/slog"
+)
 
 var Logger *slog.Logger
 

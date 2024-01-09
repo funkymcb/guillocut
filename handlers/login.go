@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -9,8 +10,13 @@ import (
 	"github.com/funkymcb/guillocut/components"
 )
 
+type LoginService interface {
+	Auth(ctx context.Context, r *http.Request)
+}
+
 type LoginHandler struct {
-	Log *slog.Logger
+	Log          *slog.Logger
+	LoginService LoginService
 }
 
 func NewLoginHandler() LoginHandler {
@@ -28,7 +34,16 @@ func (lh LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templ.Handler(components.Login()).ServeHTTP(rw, r)
+	switch r.Method {
+	case http.MethodGet:
+		templ.Handler(components.Login()).ServeHTTP(rw, r)
+		log(lh.Log, "info", ts, r, rw)
 
-	log(lh.Log, "info", ts, r, rw)
+	case http.MethodPost:
+		// TODO handle POST (user auth) here
+
+	default:
+		errorHandler(lh.Log, ts, rw, r, http.StatusMethodNotAllowed)
+		return
+	}
 }
