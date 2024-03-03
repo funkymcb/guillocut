@@ -2,16 +2,37 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/funkymcb/guillocut/components"
 	"github.com/funkymcb/guillocut/config"
-	"github.com/funkymcb/guillocut/handlers"
+	"github.com/funkymcb/guillocut/gintemplrenderer"
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	engine := gin.New()
+
+	logger, _ := zap.NewProduction()
+	engine.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+	engine.Use(ginzap.RecoveryWithZap(logger, true))
+
+	ginHtmlRenderer := engine.HTMLRender
+	engine.HTMLRender = &gintemplrenderer.HTMLTemplRenderer{FallbackHtmlRenderer: ginHtmlRenderer}
+
+	if err := engine.SetTrustedProxies(nil); err != nil {
+		log.Fatalln("could not set gin trusted proxies option", err)
+	}
+
+	engine.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "", components.Home())
+	})
 
 	cfg, err := config.Get()
 	if err != nil {
@@ -19,23 +40,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	/* TODO we only need to connect to db on login
-	db.Logger = logger
-	c := context.Background()
-	if err := db.Connect(); err != nil {
-		slog.Error("could not connect to mongo database", "message", err)
-		os.Exit(1)
-	} */
-
-	handlers.Logger = logger
-	http.Handle("/", handlers.NewHomeHandler())
-	http.Handle("/login", handlers.NewLoginHandler())
-
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-
-	logger.Info("Listening...",
-		"host", cfg.Server.Host,
-		"port", cfg.Server.Port,
-	)
-	logger.Error(http.ListenAndServe(addr, nil).Error())
+	if err := engine.Run(addr); err != nil {
+		log.Fatalln("error executing gin server", err)
+	}
 }
