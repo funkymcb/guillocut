@@ -1,0 +1,16 @@
+package components
+
+templ Login() {
+	@layout("Login") {
+		<form id="login" action="/auth" method="POST">
+			<div>
+				<h2>Login</h2>
+				<input type="text" placeholder="Enter Username" id="username" name="username" required/>
+				<br/>
+				<input type="password" placeholder="Enter Password" id="password" name="password" required/>
+				<br/>
+				<input type="submit" value="Login"/>
+			</div>
+		</form>
+	}
+}

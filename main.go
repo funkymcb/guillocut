@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/funkymcb/guillocut/components"
@@ -19,6 +17,7 @@ import (
 func main() {
 	engine := gin.New()
 
+	// logging
 	logger, _ := zap.NewProduction()
 	engine.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	engine.Use(ginzap.RecoveryWithZap(logger, true))
@@ -31,13 +30,16 @@ func main() {
 	}
 
 	engine.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "", components.Home())
+		c.HTML(http.StatusOK, "Home", components.Home())
+	})
+
+	engine.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "Login", components.Login())
 	})
 
 	cfg, err := config.Get()
 	if err != nil {
-		slog.Error("error processing config", "message", err.Error())
-		os.Exit(1)
+		log.Fatalln("error proceccing config", err)
 	}
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
