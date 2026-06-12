@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>guillocut — guillotine cutting optimizer</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --ink: #25231f;
+    --muted: #8a857c;
+    --accent: #b4552d;
+    --line: #e3e0da;
+    --waste: repeating-linear-gradient(45deg, #efede8, #efede8 6px, #e6e3dd 6px, #e6e3dd 12px);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  header {
+    padding: 28px 32px 8px;
+  }
+  header h1 { margin: 0; font-size: 26px; letter-spacing: -0.5px; }
+  header h1 span { color: var(--accent); }
+  header p { margin: 6px 0 0; color: var(--muted); }
+  main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    padding: 24px 32px 48px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  .panel + .panel { margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0 4px 4px;
+  }
+  td { padding: 2px 4px; }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    background: #fcfbfa;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .num { max-width: 78px; }
+  .cnt { max-width: 56px; }
+  button {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button.remove {
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 2px 6px;
+  }
+  button.remove:hover { color: var(--accent); }
+  .add-row { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .options { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .options label { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .options .num { width: 70px; }
+  #optimize {
+    width: 100%;
+    margin-top: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+  }
+  #optimize:hover { filter: brightness(1.08); }
+  #error {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fbeae3;
+    color: #93360f;
+    font-size: 13px;
+  }
+  .stats {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .stat .value { font-size: 24px; font-weight: 700; }
+  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .sheet-block { margin-top: 22px; }
+  .sheet-block h3 { margin: 0 0 8px; font-size: 14px; }
+  .sheet-block h3 small { color: var(--muted); font-weight: 400; }
+  svg.sheet {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+  }
+  .placeholder { color: var(--muted); padding: 40px 0; text-align: center; }
+  #unplaced {
+    display: none;
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fdf3d7;
+    color: #7a5b08;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>guillo<span>cut</span></h1>
+  <p>Guillotine cutting pattern optimizer — minimal waste, straight cuts only.</p>
+</header>
+<main>
+  <section>
+    <div class="panel">
+      <h2>Base plates (stock)</h2>
+      <table id="stocks">
+        <thead>
+          <tr><th>Name</th><th>Width</th><th>Height</th><th>Count</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button class="add-row" data-target="stocks">+ add stock plate</button>
+    </div>
+
+    <div class="panel">
+      <h2>Pieces to cut</h2>
+      <table id="pieces">
+        <thead>
+          <tr><th>Name</th><th>Width</th><th>Height</th><th>Count</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button class="add-row" data-target="pieces">+ add piece</button>
+    </div>
+
+    <div class="panel">
+      <h2>Options</h2>
+      <div class="options">
+        <label>Kerf <input type="number" id="kerf" class="num" value="3" min="0" step="0.1"> mm</label>
+        <label><input type="checkbox" id="rotation" checked> allow rotation</label>
+      </div>
+      <button id="optimize">Optimize</button>
+      <div id="error"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Cutting pattern</h2>
+    <div id="results">
+      <div class="placeholder">Enter your plates and hit “Optimize”.</div>
+    </div>
+    <div id="unplaced"></div>
+  </section>
+</main>
+
+<script>
+const PALETTE = ['#7da87b','#c2884e','#7b93b5','#b87b8f','#a3a05a','#8a7bb5',
+                 '#5aa0a3','#b5677b','#94a85e','#6b8fc2','#c29a4e','#8fb587'];
+
+function addRow(tableId, values = {}) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="name" value="${values.name ?? ''}" placeholder="name"></td>
+    <td><input type="number" class="num w" value="${values.w ?? ''}" min="0" step="0.1" placeholder="mm"></td>
+    <td><input type="number" class="num h" value="${values.h ?? ''}" min="0" step="0.1" placeholder="mm"></td>
+    <td><input type="number" class="cnt count" value="${values.count ?? 1}" min="1" step="1"></td>
+    <td><button class="remove" title="remove row">×</button></td>`;
+  tr.querySelector('.remove').onclick = () => tr.remove();
+  tbody.appendChild(tr);
+}
+
+function readRows(tableId) {
+  return [...document.querySelectorAll(`#${tableId} tbody tr`)].map((tr, i) => ({
+    name: tr.querySelector('.name').value.trim() || `#${i + 1}`,
+    w: parseFloat(tr.querySelector('.w').value),
+    h: parseFloat(tr.querySelector('.h').value),
+    count: parseInt(tr.querySelector('.count').value, 10),
+  })).filter(r => !Number.isNaN(r.w) || !Number.isNaN(r.h));
+}
+
+document.querySelectorAll('.add-row').forEach(btn => {
+  btn.onclick = () => addRow(btn.dataset.target);
+});
+
+// Sensible starter rows: one standard sheet and a couple of cabinet pieces.
+addRow('stocks', { name: 'MDF 19mm', w: 2800, h: 2070, count: 3 });
+addRow('pieces', { name: 'side', w: 600, h: 1800, count: 2 });
+addRow('pieces', { name: 'shelf', w: 762, h: 580, count: 4 });
+
+const errorBox = document.getElementById('error');
+const resultsBox = document.getElementById('results');
+const unplacedBox = document.getElementById('unplaced');
+
+document.getElementById('optimize').onclick = async () => {
+  errorBox.style.display = 'none';
+  unplacedBox.style.display = 'none';
+
+  const body = {
+    stocks: readRows('stocks'),
+    pieces: readRows('pieces'),
+    kerf: parseFloat(document.getElementById('kerf').value) || 0,
+    allowRotation: document.getElementById('rotation').checked,
+  };
+
+  let res;
+  try {
+    const resp = await fetch('/api/optimize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    res = await resp.json();
+    if (!resp.ok) throw new Error(res.error || resp.statusText);
+  } catch (e) {
+    errorBox.textContent = e.message;
+    errorBox.style.display = 'block';
+    return;
+  }
+  render(res);
+};
+
+function render(res) {
+  const colors = {};
+  let colorIdx = 0;
+  const colorFor = name => colors[name] ??= PALETTE[colorIdx++ % PALETTE.length];
+
+  let html = `
+    <div class="stats">
+      <div class="stat"><div class="value">${res.sheets.length}</div><div class="label">sheets used</div></div>
+      <div class="stat"><div class="value">${res.wastePct.toFixed(1)}%</div><div class="label">waste</div></div>
+      <div class="stat"><div class="value">${(res.usedArea / 1e6).toFixed(2)} m²</div><div class="label">pieces area</div></div>
+      <div class="stat"><div class="value">${(res.sheetArea / 1e6).toFixed(2)} m²</div><div class="label">stock area</div></div>
+    </div>`;
+
+  res.sheets.forEach((sheet, i) => {
+    html += `
+      <div class="sheet-block">
+        <h3>Sheet ${i + 1} — ${esc(sheet.stock)} <small>${sheet.w} × ${sheet.h} mm · ${sheet.wastePct.toFixed(1)}% waste</small></h3>
+        ${sheetSVG(sheet, colorFor)}
+      </div>`;
+  });
+
+  resultsBox.innerHTML = html;
+
+  if (res.unplaced.length > 0) {
+    const list = res.unplaced.map(p => `${p.count}× ${esc(p.name)} (${p.w}×${p.h})`).join(', ');
+    unplacedBox.textContent = `⚠ Could not place: ${list}. Add more stock plates or check dimensions.`;
+    unplacedBox.style.display = 'block';
+  }
+}
+
+function sheetSVG(sheet, colorFor) {
+  const pad = 1;
+  let svg = `<svg class="sheet" viewBox="${-pad} ${-pad} ${sheet.w + 2 * pad} ${sheet.h + 2 * pad}"
+                  xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="waste" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="40" height="40" fill="#efede8"/>
+        <line x1="0" y1="0" x2="0" y2="40" stroke="#dedad2" stroke-width="14"/>
+      </pattern>
+    </defs>
+    <rect x="0" y="0" width="${sheet.w}" height="${sheet.h}" fill="url(#waste)"
+          stroke="#a9a397" stroke-width="${strokeW(sheet)}"/>`;
+
+  for (const p of sheet.placements) {
+    const fontSize = Math.min(p.w, p.h) * 0.22;
+    const label = p.rotated ? `${p.name} ⟳` : p.name;
+    svg += `
+      <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}"
+            fill="${colorFor(p.name)}" fill-opacity="0.85"
+            stroke="#3d3a34" stroke-width="${strokeW(sheet)}"/>
+      <text x="${p.x + p.w / 2}" y="${p.y + p.h / 2}" text-anchor="middle"
+            font-size="${fontSize}" fill="#fff" font-weight="600"
+            dominant-baseline="central">${esc(label)}</text>
+      <text x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + fontSize}" text-anchor="middle"
+            font-size="${fontSize * 0.7}" fill="#fff" fill-opacity="0.85"
+            dominant-baseline="central">${p.w} × ${p.h}</text>`;
+  }
+  return svg + '</svg>';
+}
+
+function strokeW(sheet) {
+  return Math.max(sheet.w, sheet.h) / 600;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+</script>
+</body>
+</html>
