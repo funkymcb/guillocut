@@ -130,6 +130,9 @@
     display: block;
   }
   .placeholder { color: var(--muted); padding: 40px 0; text-align: center; }
+  .export { display: none; gap: 10px; margin: -2px 0 16px; }
+  .export button { font-size: 13px; }
+  .export button:disabled { opacity: 0.5; cursor: default; }
   #unplaced {
     display: none;
     margin-top: 16px;
@@ -139,6 +142,14 @@
     color: #7a5b08;
     font-size: 13px;
   }
+  footer {
+    padding: 16px 32px 28px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -183,12 +194,20 @@
 
   <section class="panel">
     <h2>Cutting pattern</h2>
+    <div class="export" id="export">
+      <button id="dl-dxf">⬇ Download DXF (.zip)</button>
+      <button id="dl-csv">⬇ Download CSV</button>
+    </div>
     <div id="results">
       <div class="placeholder">Enter your plates and hit “Optimize”.</div>
     </div>
     <div id="unplaced"></div>
   </section>
 </main>
+
+<footer>
+  Contact — <a href="mailto:admin@guillocut.com">admin@guillocut.com</a>
+</footer>
 
 <script>
 const PALETTE = ['#7da87b','#c2884e','#7b93b5','#b87b8f','#a3a05a','#8a7bb5',
@@ -228,34 +247,70 @@ addRow('pieces', { name: 'shelf', w: 762, h: 580, count: 4 });
 const errorBox = document.getElementById('error');
 const resultsBox = document.getElementById('results');
 const unplacedBox = document.getElementById('unplaced');
+const exportBar = document.getElementById('export');
 
-document.getElementById('optimize').onclick = async () => {
-  errorBox.style.display = 'none';
-  unplacedBox.style.display = 'none';
-
-  const body = {
+function buildBody() {
+  return {
     stocks: readRows('stocks'),
     pieces: readRows('pieces'),
     kerf: parseFloat(document.getElementById('kerf').value) || 0,
     allowRotation: document.getElementById('rotation').checked,
   };
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.style.display = 'block';
+}
+
+document.getElementById('optimize').onclick = async () => {
+  errorBox.style.display = 'none';
+  unplacedBox.style.display = 'none';
 
   let res;
   try {
     const resp = await fetch('/api/optimize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(buildBody()),
     });
     res = await resp.json();
     if (!resp.ok) throw new Error(res.error || resp.statusText);
   } catch (e) {
-    errorBox.textContent = e.message;
-    errorBox.style.display = 'block';
+    showError(e.message);
     return;
   }
   render(res);
+  exportBar.style.display = 'flex';
 };
+
+async function download(path, filename) {
+  errorBox.style.display = 'none';
+  try {
+    const resp = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildBody()),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || resp.statusText);
+    }
+    const url = URL.createObjectURL(await resp.blob());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    showError(e.message);
+  }
+}
+
+document.getElementById('dl-dxf').onclick = () => download('/api/export/dxf', 'guillocut-dxf.zip');
+document.getElementById('dl-csv').onclick = () => download('/api/export/csv', 'guillocut-cutlist.csv');
 
 function render(res) {
   const colors = {};
